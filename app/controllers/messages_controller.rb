@@ -1,4 +1,5 @@
 class MessagesController < ApplicationController
+  before_action :require_login
   before_action :set_user
 
   def index
@@ -20,7 +21,9 @@ class MessagesController < ApplicationController
 
         # Assemble prompt
         prompt = <<~PROMPT
-          You are an AI assistant for a financial advisor. Use the following email context to answer the user's question. If the context is not helpful, answer as best you can.
+          You are an AI assistant for a financial advisor. Use the following email context to answer the user's question. If you want to send an email, output a line in this exact format:
+          TOOL: send_email(to, subject, body)
+          Otherwise, just answer the question as usual.
           
           Context:
           #{context_snippets}
@@ -42,8 +45,28 @@ class MessagesController < ApplicationController
           }
         )
         ai_reply = response.dig("choices", 0, "message", "content") || "Sorry, I couldn't generate a response."
-        Message.create!(user: @user, role: 'assistant', content: ai_reply)
+
+        # Check for tool call
+        tool_match = ai_reply.match(/^TOOL: send_email\(([^,]+),\s*([^,]+),\s*(.+)\)$/m)
+        if tool_match
+          to = tool_match[1].strip
+          subject = tool_match[2].strip
+          body = tool_match[3].strip
+          begin
+            GmailClient.new(@user).send_email(to: to, subject: subject, body: body)
+            Message.create!(user: @user, role: 'assistant', content: "Email sent to #{to} with subject '#{subject}'.")
+          rescue => e
+            Rails.logger.error("[MessagesController] send_email tool error: #{e.class} - #{e.message}")
+            Message.create!(user: @user, role: 'assistant', content: "Failed to send email: #{e.message}")
+          end
+        else
+          Message.create!(user: @user, role: 'assistant', content: ai_reply)
+        end
         flash[:notice] = "Assistant replied successfully."
+      rescue Faraday::TooManyRequestsError => e
+        Rails.logger.error("[MessagesController] OpenAI API rate limit: #{e.class} - #{e.message}")
+        Message.create!(user: @user, role: 'assistant', content: "Sorry, the AI is currently busy due to high demand. Please try again in a few minutes.")
+        flash[:alert] = "OpenAI rate limit reached. Please wait a few minutes and try again."
       rescue => e
         Rails.logger.error("[MessagesController] OpenAI API error: #{e.class} - #{e.message}")
         Message.create!(user: @user, role: 'assistant', content: "Sorry, I couldn't generate a response due to an error.")
@@ -59,8 +82,7 @@ class MessagesController < ApplicationController
   private
 
   def set_user
-    # For now, use the first user (replace with real auth logic)
-    @user = User.first
+    @user = current_user
   end
 
   def message_params

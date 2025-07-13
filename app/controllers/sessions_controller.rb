@@ -10,6 +10,7 @@ class SessionsController < ApplicationController
     user.google_refresh_token = auth.credentials.refresh_token if auth.credentials.refresh_token.present?
     user.save!
 
-    redirect_to root_path, notice: "Connected to Google as #{user.email}"
+    session[:user_id] = user.id
+    redirect_to messages_path, notice: "Connected to Google as #{user.email}"
   end
 end

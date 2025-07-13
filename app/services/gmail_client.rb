@@ -1,6 +1,8 @@
 require 'google/apis/gmail_v1'
 require 'googleauth'
 require 'signet/oauth_2/client'
+require 'mail'
+require 'base64'
 
 class GmailClient
   def initialize(user)
@@ -19,6 +21,20 @@ class GmailClient
   rescue Google::Apis::AuthorizationError => e
     Rails.logger.error("[GmailClient] Auth error for user #{@user.id}: #{e.message}")
     []
+  end
+
+  def send_email(to:, subject:, body:)
+    message = Mail.new do
+      from    @user.email
+      to      to
+      subject subject
+      text_part do
+        body body
+      end
+    end
+    encoded_message = Base64.urlsafe_encode64(message.to_s)
+    msg_obj = Google::Apis::GmailV1::Message.new(raw: encoded_message)
+    @service.send_user_message('me', msg_obj)
   end
 
   private
