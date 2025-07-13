@@ -1,0 +1,59 @@
+<div class="chat-bg">
+  <div class="chat-card">
+    <div class="chat-header">
+      <h2>Ask Anything</h2>
+    </div>
+    <% if flash[:notice] %>
+      <div class="flash notice"><%= flash[:notice] %></div>
+    <% end %>
+    <% if flash[:alert] %>
+      <div class="flash alert"><%= flash[:alert] %></div>
+    <% end %>
+    <div class="messages" id="messages">
+      <% @messages.each do |msg| %>
+        <div class="message-row <%= msg.role %>">
+          <span class="avatar">
+            <% if msg.role == 'user' %>🧑<% else %>🤖<% end %>
+          </span>
+          <div class="bubble-content">
+            <span class="sender"><%= msg.role == 'user' ? 'You' : 'Advisor AI' %></span>
+            <span class="content"><%= msg.content %></span>
+            <span class="timestamp"><%= msg.created_at.strftime('%b %-d, %-I:%M %p') %></span>
+          </div>
+        </div>
+      <% end %>
+      <div id="loading-indicator" style="display:none;">
+        <div class="message-row assistant">
+          <span class="avatar">🤖</span>
+          <div class="bubble-content">
+            <span class="sender">Advisor AI</span>
+            <span class="content"><em>Assistant is typing...</em></span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <%= form_with model: @message, url: messages_path, local: true, class: "chat-form", html: { id: "chat-form" } do |f| %>
+      <%= f.text_field :content, placeholder: "Ask anything about your meetings...", autofocus: true, class: "chat-input" %>
+      <%= f.submit "Send", class: "chat-send" %>
+    <% end %>
+  </div>
+</div>
+<script>
+  // Auto-scroll to bottom on page load
+  window.onload = function() {
+    var messagesDiv = document.getElementById('messages');
+    if (messagesDiv) {
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+  };
+  // Show loading indicator on form submit
+  document.addEventListener('DOMContentLoaded', function() {
+    var form = document.getElementById('chat-form');
+    var loading = document.getElementById('loading-indicator');
+    if (form && loading) {
+      form.addEventListener('submit', function() {
+        loading.style.display = '';
+      });
+    }
+  });
+</script> 
