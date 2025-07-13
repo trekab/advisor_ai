@@ -52,6 +52,3 @@ gem 'dotenv-rails' # for local env vars
 gem 'pgvector'
 gem 'google-apis-gmail_v1'
 gem 'ruby-openai'
-gem 'llm', git: 'git@github.com:mckaywrigley/llm.git'
-gem 'nmatrix'
-gem 'transformers', require: false
