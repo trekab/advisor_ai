@@ -13,4 +13,11 @@ class SessionsController < ApplicationController
     session[:user_id] = user.id
     redirect_to messages_path, notice: "Connected to Google as #{user.email}"
   end
+
+
+
+  def destroy
+    session[:user_id] = nil
+    redirect_to root_path, notice: "Logged out successfully"
+  end
 end

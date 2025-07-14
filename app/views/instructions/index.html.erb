@@ -1,19 +1,28 @@
-<h1>Ongoing Instructions</h1>
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5em;">
+  <h1>Ongoing Instructions</h1>
+  <%= button_to 'Logout', logout_path, method: :delete, class: 'btn btn-secondary', form: { style: 'display: inline;' } %>
+</div>
 
 <% if @instructions.any? %>
-  <ul class="instructions-list">
+  <div class="instructions-list">
     <% @instructions.each do |instruction| %>
-      <li>
-        <div class="instruction-content"><%= instruction.content %></div>
-        <div class="instruction-actions">
-          <%= link_to 'Edit', edit_instruction_path(instruction), class: 'btn' %>
-          <%= link_to 'Delete', instruction_path(instruction), method: :delete, data: { confirm: 'Are you sure?' }, class: 'btn btn-danger' %>
+      <div class="instruction-card">
+        <div class="instruction-header">
+          <span class="instruction-date">Added <%= instruction.created_at.strftime('%b %d, %Y %l:%M %p') %></span>
+          <div class="instruction-actions">
+            <%= link_to '✏️', edit_instruction_path(instruction), class: 'icon-btn', title: 'Edit' %>
+            <%= link_to '🗑️', instruction_path(instruction), method: :delete, data: { confirm: 'Are you sure?' }, class: 'icon-btn danger', title: 'Delete' %>
+          </div>
         </div>
-      </li>
+        <div class="instruction-content"><%= instruction.content %></div>
+      </div>
     <% end %>
-  </ul>
+  </div>
 <% else %>
-  <p>No ongoing instructions yet.</p>
+  <div class="empty-state">
+    <div class="empty-illustration">📝</div>
+    <p>No ongoing instructions yet.<br>Use the chat to add your first one!</p>
+  </div>
 <% end %>
 
 <%= link_to 'Back to Chat', messages_path, class: 'btn' %>

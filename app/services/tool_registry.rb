@@ -52,7 +52,8 @@ ToolRegistry.register(
   description: "Create a new contact in the CRM. Parameters: name, email, notes.",
   parameters: ["name", "email", "notes"]
 ) do |user, name, email, notes|
-  "Contact '#{name}' (#{email}) created with notes: #{notes}."
+  raise "User must be present for create_contact" unless user
+  HubspotClient.new(user).create_contact(name: name, email: email, notes: notes)
 end
 
 # Register add_contact_note tool
@@ -61,5 +62,6 @@ ToolRegistry.register(
   description: "Add a note to a contact in the CRM. Parameters: contact_email, note.",
   parameters: ["contact_email", "note"]
 ) do |user, contact_email, note|
-  "Note added to contact #{contact_email}: #{note}."
+  raise "User must be present for add_contact_note" unless user
+  HubspotClient.new(user).add_contact_note(contact_email: contact_email, note: note)
 end 

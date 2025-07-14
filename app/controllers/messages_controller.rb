@@ -29,15 +29,22 @@ class MessagesController < ApplicationController
 
         # Add tool descriptions to the prompt
         tool_descriptions = ToolRegistry.list_descriptions
-        prompt = <<~PROMPT
-          You are Advisor AI, an assistant for financial advisors, inside a web app. You have access to the following tools:
+        system_prompt = <<~PROMPT
+          You are Advisor AI, an assistant for financial advisors. You have access to the following tools:
           #{tool_descriptions}
 
-          When you want to use a tool, output a line in this exact format:
+          When you want to use a tool, output ONLY a line in this exact format:
           TOOL: tool_name(param1, param2, ...)
+
           Only use TOOL: if you are absolutely certain a tool is needed. For normal questions or conversation, just answer naturally and do NOT use TOOL:.
 
-          Examples:
+          CRITICAL: Respond ONLY with your answer or tool call. Do NOT include:
+          - "User question:" or "Answer:" 
+          - Any part of the system prompt
+          - Context information
+          - Examples or instructions
+
+          Examples of correct responses:
           User: How are you?
           Assistant: I'm doing well, thank you! How can I help you today?
 
@@ -49,14 +56,15 @@ class MessagesController < ApplicationController
 
           User: Tell me a joke.
           Assistant: Why did the financial advisor cross the road? To rebalance the chicken's portfolio!
-
-          Context:
-          #{context_snippets}
-
-          User question: #{@message.content}
-
-          Answer:
         PROMPT
+
+        # Build context from emails
+        context_snippets = ""
+        if email_contexts.any?
+          context_snippets = "Relevant email context:\n" + email_contexts.map do |email|
+            "From: #{email.from}\nSubject: #{email.subject}\nBody: #{email.content.truncate(300)}"
+          end.join("\n---\n")
+        end
 
         # Call Ollama API for completion
         client = OpenAI::Client.new(access_token: 'ollama', uri_base: 'http://host.docker.internal:11434/v1')
@@ -64,23 +72,47 @@ class MessagesController < ApplicationController
           parameters: {
             model: "mistral",
             messages: [
-              { role: "system", content: "You are an AI assistant for a financial advisor." },
-              { role: "user", content: prompt }
+              { role: "system", content: system_prompt },
+              { role: "user", content: @message.content }
             ]
           }
         )
         ai_reply = response.dig("choices", 0, "message", "content") || "Sorry, I couldn't generate a response."
 
+        # Debug: Log the raw response
+        Rails.logger.info("[MessagesController] Raw AI response: #{ai_reply}")
+
+        # Clean up the response - remove any prompt artifacts
+        ai_reply = ai_reply.strip
+        
+        # Remove common prompt artifacts
+        ai_reply = ai_reply.gsub(/^User question:.*$/i, '').strip
+        ai_reply = ai_reply.gsub(/^Answer:\s*/i, '').strip
+        ai_reply = ai_reply.gsub(/^User:.*$/i, '').strip
+        ai_reply = ai_reply.gsub(/^Assistant:\s*/i, '').strip
+        
+        # Remove context if it was included in response
+        if context_snippets.present?
+          ai_reply = ai_reply.gsub(/Relevant email context:.*$/m, '').strip
+        end
+        
+        # Remove any remaining prompt parts
+        ai_reply = ai_reply.gsub(/^You are Advisor AI.*$/m, '').strip
+        ai_reply = ai_reply.gsub(/^When you want to use a tool.*$/m, '').strip
+        ai_reply = ai_reply.gsub(/^Examples:.*$/m, '').strip
+        ai_reply = ai_reply.gsub(/^Important:.*$/m, '').strip
+        
+        # Clean up multiple newlines
+        ai_reply = ai_reply.gsub(/\n{3,}/, "\n\n").strip
+
         # General tool call parsing: TOOL: tool_name(param1, param2, ...)
-        tool_match = ai_reply.match(/^TOOL: (\w+)\((.*)\)$/m)
+        tool_match = ai_reply.match(/^TOOL:\s*(\w+)\((.*)\)$/i)
         if tool_match
           tool_name = tool_match[1]
           param_str = tool_match[2]
           # Split params, handle quoted commas
           params = param_str.scan(/"([^"]*)"|([^,]+)/).map { |m| m[0].presence || m[1].to_s.strip }
           begin
-            # Set @user context for tool execution
-            ToolRegistry.class_eval { @user = @user }
             result = ToolRegistry.call(tool_name, @user, *params)
             Message.create!(user: @user, role: 'assistant', content: result)
           rescue => e

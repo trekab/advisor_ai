@@ -1,5 +1,53 @@
-<h1>Welcome</h1>
-<p><a href="/auth/google_oauth2">Log in with Google</a></p>
-<% if notice %>
-  <p style="color: green;"><%= notice %></p>
-<% end %>
+<div class="home-bg">
+  <div class="home-container">
+    <div class="hero-section">
+      <div class="hero-content glass-card">
+        <div class="hero-logo">
+          <span class="logo-circle">🤖</span>
+        </div>
+        <h1 class="hero-title">Advisor AI</h1>
+        <p class="hero-subtitle">
+          Your intelligent assistant for managing clients, emails, and calendar events.
+        </p>
+        <div class="auth-buttons">
+          <a href="/auth/google_oauth2" class="auth-btn google-btn">
+            <span style="font-size: 1.2em; vertical-align: middle;">🔒</span>
+            Sign in with Google
+          </a>
+          <div class="auth-note">
+            <span style="font-size: 1.1em; vertical-align: middle;">ℹ️</span>
+            This will request access to your Gmail and Google Calendar
+          </div>
+        </div>
+        <% if notice %>
+          <p class="login-notice"><%= notice %></p>
+        <% end %>
+      </div>
+    </div>
+    <div class="features-section">
+      <h2>Features</h2>
+      <div class="features-grid">
+        <div class="feature-card">
+          <span class="feature-icon email">📧</span>
+          <h3>Email Integration</h3>
+          <p>Search and analyze your Gmail messages with AI-powered insights.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon calendar">📅</span>
+          <h3>Calendar Management</h3>
+          <p>Schedule meetings and manage your calendar with natural language.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon clients">👥</span>
+          <h3>Client Management</h3>
+          <p>Integrate with HubSpot to manage your client relationships.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon ai">🧠</span>
+          <h3>AI Assistant</h3>
+          <p>Get intelligent answers about your clients and business data.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -2,8 +2,9 @@
   <div class="chat-card">
     <div class="chat-header">
       <h2>Ask Anything</h2>
-      <div style="margin-top: 0.5em;">
+      <div style="margin-top: 0.5em; display: flex; gap: 0.5rem; align-items: center;">
         <%= link_to 'Manage Instructions', instructions_path, class: 'btn btn-secondary' %>
+        <%= button_to 'Logout', logout_path, method: :delete, class: 'btn btn-secondary', form: { style: 'display: inline;' } %>
       </div>
     </div>
     <% if flash[:notice] %>
