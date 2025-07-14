@@ -19,7 +19,17 @@ class GmailClient
       @service.get_user_message('me', msg.id)
     end
   rescue Google::Apis::AuthorizationError => e
-    Rails.logger.error("[GmailClient] Auth error for user #{@user.id}: #{e.message}")
+    Rails.logger.error("[GmailClient] Authorization error for user #{@user.id}: #{e.message}")
+    # Update user's sync status to indicate auth issue
+    @user.update!(last_email_sync_at: nil, sync_error: "Authentication failed: #{e.message}")
+    []
+  rescue Google::Apis::ServerError => e
+    Rails.logger.error("[GmailClient] Server error for user #{@user.id}: #{e.message}")
+    @user.update!(sync_error: "Gmail server error: #{e.message}")
+    []
+  rescue => e
+    Rails.logger.error("[GmailClient] Unexpected error for user #{@user.id}: #{e.class} - #{e.message}")
+    @user.update!(sync_error: "Unexpected error: #{e.message}")
     []
   end
 

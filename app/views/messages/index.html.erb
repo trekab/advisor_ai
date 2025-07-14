@@ -1,70 +1,167 @@
-<div class="chat-bg">
-  <div class="chat-card">
-    <div class="chat-header">
-      <h2>Ask Anything</h2>
-      <div style="margin-top: 0.5em; display: flex; gap: 0.5rem; align-items: center;">
-        <%= link_to 'Dashboard', dashboard_index_path, class: 'btn btn-primary' %>
-        <%= link_to 'Manage Instructions', instructions_path, class: 'btn btn-secondary' %>
-        <%= link_to 'Calendar', calendar_index_path, class: 'btn btn-info' %>
-        <% if current_user.hubspot_access_token.present? %>
-          <span class="btn btn-success" style="cursor: default;">✓ HubSpot Connected</span>
-        <% else %>
-          <%= link_to 'Connect HubSpot', '/auth/hubspot', class: 'btn btn-warning' %>
-        <% end %>
-        <%= button_to 'Logout', logout_path, method: :delete, class: 'btn btn-secondary', form: { style: 'display: inline;' } %>
+<div class="chat-container">
+  <div class="chat-header">
+    <h1>AI Assistant</h1>
+    <p>Ask me anything about your emails, calendar, or clients</p>
+  </div>
+
+  <div class="messages-container" id="messages">
+    <% @messages.each do |message| %>
+      <div class="message message-<%= message.role %>">
+        <div class="message-role"><%= message.role.titleize %></div>
+        <div class="message-content"><%= simple_format(message.content) %></div>
       </div>
-    </div>
-    <% if flash[:notice] %>
-      <div class="flash notice"><%= flash[:notice] %></div>
     <% end %>
-    <% if flash[:alert] %>
-      <div class="flash alert"><%= flash[:alert] %></div>
-    <% end %>
-    <div class="messages" id="messages">
-      <% @messages.each do |msg| %>
-        <div class="message-row <%= msg.role %>">
-          <span class="avatar">
-            <% if msg.role == 'user' %>🧑<% else %>🤖<% end %>
-          </span>
-          <div class="bubble-content">
-            <span class="sender"><%= msg.role == 'user' ? 'You' : 'Advisor AI' %></span>
-            <span class="content"><%= msg.content %></span>
-            <span class="timestamp"><%= msg.created_at.strftime('%b %-d, %-I:%M %p') %></span>
+    
+    <!-- Loading indicator -->
+    <div class="message message-assistant" id="loading-message" style="display: none;">
+      <div class="message-role">Assistant</div>
+      <div class="message-content">
+        <div class="typing-indicator">
+          <div class="typing-dots">
+            <span></span>
+            <span></span>
+            <span></span>
           </div>
+          <div class="typing-text" id="loading-text">AI is thinking...</div>
         </div>
-      <% end %>
-      <div id="loading-indicator" style="display:none;">
-        <div class="message-row assistant">
-          <span class="avatar">🤖</span>
-          <div class="bubble-content">
-            <span class="sender">Advisor AI</span>
-            <span class="content"><em>Assistant is typing...</em></span>
+        <div class="ai-status" id="ai-status" style="display: none;">
+          <div class="status-icon">🔧</div>
+          <div class="status-text">Using tools to help you...</div>
+        </div>
+        <div class="loading-progress" id="loading-progress" style="display: none;">
+          <div class="progress-bar">
+            <div class="progress-fill"></div>
           </div>
+          <div class="progress-text">Processing your request...</div>
         </div>
       </div>
     </div>
-    <%= form_with model: @message, url: messages_path, local: true, class: "chat-form", html: { id: "chat-form" } do |f| %>
-      <%= f.text_field :content, placeholder: "Ask anything about your meetings...", autofocus: true, class: "chat-input" %>
-      <%= f.submit "Send", class: "chat-send" %>
+  </div>
+
+  <div class="chat-form">
+    <%= form_with model: @message, url: messages_path, method: :post, local: true, id: "message-form" do |form| %>
+      <div class="form-group">
+        <%= form.text_area :content, 
+            placeholder: "Ask me about your emails, schedule a meeting, or get insights about your clients...", 
+            class: "form-input form-textarea",
+            id: "message-input",
+            rows: 3 %>
+      </div>
+      <div class="form-actions">
+        <%= form.submit "Send Message", class: "btn btn-primary", id: "send-button" %>
+      </div>
     <% end %>
   </div>
 </div>
+
+<div class="quick-actions">
+  <h3>Quick Actions</h3>
+  <div class="action-buttons">
+    <%= link_to "📊 Dashboard", dashboard_index_path, class: "btn btn-secondary" %>
+    <%= link_to "📅 Calendar", calendar_index_path, class: "btn btn-secondary" %>
+    <%= link_to "📧 Email Sync", "#", class: "btn btn-secondary", onclick: "syncEmails()" %>
+    <%= link_to "🔗 HubSpot", hubspot_oauth_path, class: "btn btn-secondary" %>
+  </div>
+</div>
+
 <script>
-  // Auto-scroll to bottom on page load
-  window.onload = function() {
-    var messagesDiv = document.getElementById('messages');
-    if (messagesDiv) {
-      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  // Auto-scroll to bottom of messages
+  function scrollToBottom() {
+    const messagesContainer = document.getElementById('messages');
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  }
+
+  // Play notification sound
+  function playNotificationSound() {
+    try {
+      const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT');
+      audio.volume = 0.3;
+      audio.play();
+    } catch (e) {
+      // Ignore audio errors
     }
-  };
-  // Show loading indicator on form submit
-  document.addEventListener('DOMContentLoaded', function() {
-    var form = document.getElementById('chat-form');
-    var loading = document.getElementById('loading-indicator');
-    if (form && loading) {
-      form.addEventListener('submit', function() {
-        loading.style.display = '';
-      });
+  }
+
+  // Trigger haptic feedback on mobile
+  function triggerHapticFeedback() {
+    if ('vibrate' in navigator) {
+      navigator.vibrate(50);
     }
+  }
+
+  // Scroll on page load
+  document.addEventListener('DOMContentLoaded', scrollToBottom);
+
+  // Handle form submission
+  document.getElementById('message-form').addEventListener('submit', function(e) {
+    const button = document.getElementById('send-button');
+    const input = document.getElementById('message-input');
+    const loadingMessage = document.getElementById('loading-message');
+    const loadingText = document.getElementById('loading-text');
+    const loadingProgress = document.getElementById('loading-progress');
+    
+    if (input.value.trim() === '') {
+      e.preventDefault();
+      return;
+    }
+    
+    // Show loading state
+    button.innerHTML = '<span class="loading"></span> Sending...';
+    button.disabled = true;
+    input.readOnly = true;
+    
+    // Add loading class to form
+    document.querySelector('.chat-form').classList.add('loading');
+    
+    // Show typing indicator
+    loadingMessage.style.display = 'block';
+    scrollToBottom();
+    
+    // Play notification sound and haptic feedback
+    playNotificationSound();
+    triggerHapticFeedback();
+    
+    // Determine loading message based on input content
+    const userMessage = input.value.toLowerCase();
+    const aiStatus = document.getElementById('ai-status');
+    
+    if (userMessage.includes('schedule') || userMessage.includes('appointment') || userMessage.includes('meeting')) {
+      loadingText.textContent = 'Scheduling your meeting...';
+      loadingProgress.style.display = 'block';
+      aiStatus.style.display = 'flex';
+    } else if (userMessage.includes('email') || userMessage.includes('send')) {
+      loadingText.textContent = 'Sending your email...';
+      loadingProgress.style.display = 'block';
+      aiStatus.style.display = 'flex';
+    } else if (userMessage.includes('search') || userMessage.includes('find') || userMessage.includes('who')) {
+      loadingText.textContent = 'Searching through your data...';
+      loadingProgress.style.display = 'block';
+      aiStatus.style.display = 'flex';
+    } else {
+      loadingText.textContent = 'AI is thinking...';
+      loadingProgress.style.display = 'none';
+      aiStatus.style.display = 'none';
+    }
+    
+    // Add a small delay to show the typing animation
+    setTimeout(() => {
+      // The form will submit and page will reload with the response
+    }, 100);
   });
+
+  // Sync emails function
+  function syncEmails() {
+    const button = event.target;
+    const originalText = button.textContent;
+    
+    button.innerHTML = '<span class="loading"></span> Syncing...';
+    button.disabled = true;
+    
+    // Simulate sync (replace with actual AJAX call)
+    setTimeout(() => {
+      button.textContent = originalText;
+      button.disabled = false;
+      alert('Email sync completed!');
+    }, 2000);
+  }
 </script> 

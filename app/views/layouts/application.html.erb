@@ -1,32 +1,49 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title><%= content_for(:title) || "Advisor Ai" %></title>
+    <title>Advisor AI</title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="mobile-web-app-capable" content="yes">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
 
-    <%= yield :head %>
-
-    <%# Enable PWA manifest for installable apps (make sure to enable in config/routes.rb too!) %>
-    <%#= tag.link rel: "manifest", href: pwa_manifest_path(format: :json) %>
-
-    <link rel="icon" href="/icon.png" type="image/png">
-    <link rel="icon" href="/icon.svg" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="/icon.png">
-
-    <%# Google Fonts - Inter for professional financial advisor look %>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-    <%# Includes all stylesheet files in app/assets/stylesheets %>
-    <%= stylesheet_link_tag "application" %>
+    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
   </head>
 
   <body>
-    <%= yield %>
+    <div class="container">
+      <div class="main-content">
+        <% unless current_page?(root_path) %>
+          <!-- Header -->
+          <div class="header">
+            <div class="header-content">
+              <h1>Advisor AI</h1>
+              <p>Your intelligent financial assistant</p>
+            </div>
+          </div>
+
+          <!-- Navigation -->
+          <div class="nav">
+            <div class="nav-content">
+              <div class="nav-brand">
+                <%= link_to "Advisor AI", messages_path, style: "color: inherit; text-decoration: none;" %>
+              </div>
+              <div class="nav-links">
+                <% if current_user %>
+                  <span style="color: var(--gray-600); font-size: 0.875rem;">
+                    Welcome, <%= current_user.email %>
+                  </span>
+                  <%= button_to 'Logout', logout_path, method: :delete, class: 'btn btn-sm btn-secondary', form: { style: 'display: inline;' } %>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+
+        <!-- Main Content -->
+        <div style="padding: var(--space-6);">
+          <%= yield %>
+        </div>
+      </div>
+    </div>
   </body>
 </html>

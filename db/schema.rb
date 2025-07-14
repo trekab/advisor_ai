@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_07_14_102442) do
+ActiveRecord::Schema[8.0].define(version: 2025_07_14_113426) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -37,6 +37,23 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_14_102442) do
     t.index ["user_id"], name: "index_messages_on_user_id"
   end
 
+  create_table "tasks", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "title"
+    t.text "description"
+    t.integer "status"
+    t.integer "task_type"
+    t.jsonb "progress"
+    t.jsonb "steps"
+    t.jsonb "result"
+    t.text "error_message"
+    t.datetime "completed_at"
+    t.datetime "failed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_tasks_on_user_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "email"
     t.string "google_access_token"
@@ -47,9 +64,12 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_14_102442) do
     t.string "hubspot_refresh_token"
     t.datetime "hubspot_token_updated_at"
     t.datetime "last_email_sync_at"
+    t.text "sync_error"
+    t.datetime "last_hubspot_sync_at"
   end
 
   add_foreign_key "emails", "users"
   add_foreign_key "instructions", "users"
   add_foreign_key "messages", "users"
+  add_foreign_key "tasks", "users"
 end

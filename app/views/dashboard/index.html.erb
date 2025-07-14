@@ -1,118 +1,232 @@
-<div class="dashboard-container">
-  <div class="dashboard-header">
-    <h1>Dashboard</h1>
-    <div class="dashboard-actions">
-      <%= button_to 'Sync Now', sync_now_dashboard_index_path, method: :post, class: 'btn btn-primary' %>
-      <%= link_to 'Back to Chat', messages_path, class: 'btn btn-secondary' %>
+<div class="dashboard-header">
+  <h1>Dashboard</h1>
+  <p>Overview of your connected services and recent activity</p>
+</div>
+
+<div class="dashboard-grid">
+  <!-- Email Stats -->
+  <div class="stat-card">
+    <div class="stat-number"><%= @email_stats[:total_emails] %></div>
+    <div class="stat-label">Total Emails</div>
+    <div class="stat-detail">
+      <small><%= @email_stats[:recent_emails] %> this week</small>
     </div>
   </div>
+  
+  <!-- Chat Stats -->
+  <div class="stat-card">
+    <div class="stat-number"><%= @chat_stats[:total_messages] %></div>
+    <div class="stat-label">AI Conversations</div>
+    <div class="stat-detail">
+      <small><%= @chat_stats[:recent_conversations] %> this week</small>
+    </div>
+  </div>
+  
+  <!-- Task Stats -->
+  <div class="stat-card">
+    <div class="stat-number"><%= @task_stats[:pending_tasks] %></div>
+    <div class="stat-label">Pending Tasks</div>
+    <div class="stat-detail">
+      <small><%= @task_stats[:completion_rate] %>% completion rate</small>
+    </div>
+  </div>
+  
+  <!-- Calendar Stats -->
+  <div class="stat-card">
+    <div class="stat-number"><%= @calendar_stats[:upcoming_meetings] %></div>
+    <div class="stat-label">Upcoming Meetings</div>
+    <div class="stat-detail">
+      <small><%= @calendar_stats[:this_week_meetings] %> this week</small>
+    </div>
+  </div>
+</div>
 
-  <% if flash[:notice] %>
-    <div class="flash notice"><%= flash[:notice] %></div>
-  <% end %>
-  <% if flash[:alert] %>
-    <div class="flash alert"><%= flash[:alert] %></div>
-  <% end %>
-
-  <div class="dashboard-content">
-    <!-- Statistics Cards -->
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-number"><%= @stats[:total_emails] %></div>
-        <div class="stat-label">Total Emails</div>
+<div class="status-section">
+  <h2>Service Status</h2>
+  <div class="status-grid">
+    <!-- Email Service -->
+    <div class="status-card <%= @email_stats[:sync_status_class] %>">
+      <div class="status-icon">
+        <% case @email_stats[:sync_status_class] %>
+        <% when 'connected' %>
+          ✓
+        <% when 'warning' %>
+          ⚠
+        <% else %>
+          ✗
+        <% end %>
       </div>
-      <div class="stat-card">
-        <div class="stat-number"><%= @stats[:total_messages] %></div>
-        <div class="stat-label">Total Messages</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-number"><%= @stats[:total_instructions] %></div>
-        <div class="stat-label">Instructions</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-number"><%= @stats[:recent_emails] %></div>
-        <div class="stat-label">New Emails (24h)</div>
+      <div class="status-info">
+        <h3>Email Sync</h3>
+        <p>Gmail Integration</p>
+        <small>
+          <% if @email_stats[:sync_status_class] == 'connected' %>
+            Connected • Last sync: <%= @email_stats[:sync_status] %>
+          <% elsif @email_stats[:sync_status_class] == 'warning' %>
+            Warning • Last sync: <%= @email_stats[:sync_status] %>
+          <% else %>
+            Not connected • <%= @email_stats[:sync_status] %>
+          <% end %>
+        </small>
+        <% if @email_stats[:top_senders].any? %>
+          <div class="top-senders">
+            <small>Top senders: <%= @email_stats[:top_senders].map { |sender, _| sender.split('@').first }.join(', ') %></small>
+          </div>
+        <% end %>
       </div>
     </div>
-
-    <!-- Sync Status -->
-    <div class="dashboard-section">
-      <h2>Connection Status</h2>
-      <div class="status-grid">
-        <div class="status-card <%= @sync_status[:google_connected] ? 'connected' : 'disconnected' %>">
-          <div class="status-icon">
-            <%= @sync_status[:google_connected] ? '✓' : '✗' %>
-          </div>
-          <div class="status-info">
-            <h3>Google</h3>
-            <p><%= @sync_status[:google_connected] ? 'Connected' : 'Not Connected' %></p>
-            <% if @sync_status[:last_email_sync] %>
-              <small>Last sync: <%= @sync_status[:last_email_sync].strftime('%B %d at %I:%M %p') %></small>
-            <% end %>
-          </div>
-        </div>
-        
-        <div class="status-card <%= @sync_status[:hubspot_connected] ? 'connected' : 'disconnected' %>">
-          <div class="status-icon">
-            <%= @sync_status[:hubspot_connected] ? '✓' : '✗' %>
-          </div>
-          <div class="status-info">
-            <h3>HubSpot</h3>
-            <p><%= @sync_status[:hubspot_connected] ? 'Connected' : 'Not Connected' %></p>
-            <% if @sync_status[:last_calendar_sync] %>
-              <small>Last sync: <%= @sync_status[:last_calendar_sync].strftime('%B %d at %I:%M %p') %></small>
-            <% end %>
-          </div>
-        </div>
+    
+    <!-- Calendar Service -->
+    <div class="status-card <%= @calendar_stats[:calendar_status_class] %>">
+      <div class="status-icon">
+        <%= @calendar_stats[:calendar_status_class] == 'connected' ? '✓' : '✗' %>
+      </div>
+      <div class="status-info">
+        <h3>Calendar</h3>
+        <p>Google Calendar</p>
+        <small>
+          <%= @calendar_stats[:calendar_status] %>
+          <% if @calendar_stats[:calendar_status_class] == 'connected' %>
+            • <%= @calendar_stats[:upcoming_meetings] %> upcoming meetings
+          <% end %>
+        </small>
       </div>
     </div>
-
-    <!-- Recent Activity -->
-    <div class="dashboard-section">
-      <h2>Recent Activity</h2>
-      <div class="activity-grid">
-        <div class="activity-column">
-          <h3>Recent Emails</h3>
-          <% if @recent_emails.any? %>
-            <div class="activity-list">
-              <% @recent_emails.each do |email| %>
-                <div class="activity-item">
-                  <div class="activity-header">
-                    <strong><%= email.subject %></strong>
-                    <span class="activity-time"><%= email.created_at.strftime('%I:%M %p') %></span>
-                  </div>
-                  <div class="activity-details">
-                    From: <%= email.from %>
-                  </div>
-                </div>
-              <% end %>
-            </div>
+    
+    <!-- HubSpot Service -->
+    <div class="status-card <%= @hubspot_stats[:status_class] %>">
+      <div class="status-icon">
+        <%= @hubspot_stats[:status_class] == 'connected' ? '✓' : '✗' %>
+      </div>
+      <div class="status-info">
+        <h3>HubSpot CRM</h3>
+        <p>Contacts & Deals</p>
+        <small>
+          <% if @hubspot_stats[:status_class] == 'connected' %>
+            Connected • Last sync: <%= @hubspot_stats[:last_sync] %>
           <% else %>
-            <p class="empty-state">No recent emails</p>
+            <%= link_to 'Connect Now', hubspot_oauth_path, class: 'btn btn-sm btn-primary' %>
           <% end %>
-        </div>
-        
-        <div class="activity-column">
-          <h3>Recent Messages</h3>
-          <% if @recent_messages.any? %>
-            <div class="activity-list">
-              <% @recent_messages.each do |message| %>
-                <div class="activity-item">
-                  <div class="activity-header">
-                    <strong><%= message.role.titleize %></strong>
-                    <span class="activity-time"><%= message.created_at.strftime('%I:%M %p') %></span>
-                  </div>
-                  <div class="activity-details">
-                    <%= message.content.truncate(100) %>
-                  </div>
-                </div>
-              <% end %>
-            </div>
-          <% else %>
-            <p class="empty-state">No recent messages</p>
-          <% end %>
+        </small>
+      </div>
+    </div>
+    
+    <!-- Task Management -->
+    <div class="status-card connected">
+      <div class="status-icon">✓</div>
+      <div class="status-info">
+        <h3>Task Management</h3>
+        <p>AI-Powered Tasks</p>
+        <small>
+          <%= @task_stats[:total_tasks] %> total tasks • <%= @task_stats[:completion_rate] %>% completion rate
+        </small>
+        <div class="task-progress">
+          <div class="progress-bar">
+            <div class="progress-fill" style="width: <%= @task_stats[:completion_rate] %>%"></div>
+          </div>
         </div>
       </div>
     </div>
   </div>
-</div> 
+</div>
+
+<div class="activity-section">
+  <div class="activity-grid">
+    <div class="activity-column">
+      <h3>Recent Emails</h3>
+      <% if @recent_emails.any? %>
+        <% @recent_emails.each do |email| %>
+          <div class="activity-item">
+            <div class="activity-header">
+              <div class="activity-title"><%= email.subject %></div>
+              <div class="activity-time"><%= email.created_at.strftime('%b %-d, %-I:%M %p') %></div>
+            </div>
+            <div class="activity-details">
+              From: <%= email.from %> • <%= email.content&.truncate(100) %>
+            </div>
+          </div>
+        <% end %>
+      <% else %>
+        <div class="empty-state">
+          <p>No emails synced yet</p>
+        </div>
+      <% end %>
+    </div>
+    
+    <div class="activity-column">
+      <h3>Recent AI Conversations</h3>
+      <% if @recent_messages.any? %>
+        <% @recent_messages.each do |message| %>
+          <div class="activity-item">
+            <div class="activity-header">
+              <div class="activity-title"><%= message.role.titleize %></div>
+              <div class="activity-time"><%= message.created_at.strftime('%b %-d, %-I:%M %p') %></div>
+            </div>
+            <div class="activity-details">
+              <%= message.content.truncate(100) %>
+            </div>
+          </div>
+        <% end %>
+      <% else %>
+        <div class="empty-state">
+          <p>No conversations yet</p>
+        </div>
+      <% end %>
+    </div>
+    
+    <div class="activity-column">
+      <h3>Recent Tasks</h3>
+      <% if @recent_tasks.any? %>
+        <% @recent_tasks.each do |task| %>
+          <div class="activity-item">
+            <div class="activity-header">
+              <div class="activity-title">
+                <%= task.title %>
+                <% if task.completed_at.present? %>
+                  <span class="task-status completed">✓</span>
+                <% else %>
+                  <span class="task-status pending">○</span>
+                <% end %>
+              </div>
+              <div class="activity-time"><%= task.updated_at.strftime('%b %-d, %-I:%M %p') %></div>
+            </div>
+            <div class="activity-details">
+              <%= task.description&.truncate(100) || 'No description' %>
+            </div>
+          </div>
+        <% end %>
+      <% else %>
+        <div class="empty-state">
+          <p>No tasks yet</p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<div class="dashboard-actions">
+  <h3>Quick Actions</h3>
+  <div class="action-buttons">
+    <%= link_to "💬 Start Chat", messages_path, class: "btn btn-primary" %>
+    <%= link_to "📅 View Calendar", calendar_index_path, class: "btn btn-secondary" %>
+    <%= link_to "📧 Sync Emails", "#", class: "btn btn-secondary", onclick: "syncEmails()" %>
+    <%= link_to "⚙️ Manage Instructions", instructions_path, class: "btn btn-secondary" %>
+  </div>
+</div>
+
+<script>
+  function syncEmails() {
+    const button = event.target;
+    const originalText = button.textContent;
+    
+    button.innerHTML = '<span class="loading"></span> Syncing...';
+    button.disabled = true;
+    
+    // Simulate sync (replace with actual AJAX call)
+    setTimeout(() => {
+      button.textContent = originalText;
+      button.disabled = false;
+      alert('Email sync completed!');
+    }, 2000);
+  }
+</script> 

@@ -32,17 +32,18 @@ class GmailSyncJob < ApplicationJob
         # Remove null bytes
         body = body.delete("\0")
 
-        embedding = embedder.embed(body)
-
-        ::Email.create!(
+        # Create email record
+        email = ::Email.create!(
           user: user,
           message_id: message.id,
           subject: subject,
           from: from,
           to: to,
-          content: body,
-          embedding: embedding
+          content: body
         )
+        
+        # Create embedding for RAG
+        embedder.embed_email(email)
         
         emails_created += 1
       end

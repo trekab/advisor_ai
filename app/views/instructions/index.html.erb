@@ -1,28 +1,45 @@
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5em;">
-  <h1>Ongoing Instructions</h1>
-  <%= button_to 'Logout', logout_path, method: :delete, class: 'btn btn-secondary', form: { style: 'display: inline;' } %>
+<div class="instructions-header">
+  <h1>Custom Instructions</h1>
+  <p>Manage your AI assistant's behavior and preferences</p>
+</div>
+
+<div class="instructions-actions">
+  <%= link_to "➕ Add New Instruction", new_instruction_path, class: "btn btn-primary" %>
 </div>
 
 <% if @instructions.any? %>
-  <div class="instructions-list">
+  <div class="instructions-grid">
     <% @instructions.each do |instruction| %>
       <div class="instruction-card">
         <div class="instruction-header">
-          <span class="instruction-date">Added <%= instruction.created_at.strftime('%b %d, %Y %l:%M %p') %></span>
+          <div class="instruction-meta">
+            <div class="instruction-date">
+              <%= instruction.created_at.strftime('%b %-d, %Y') %>
+            </div>
+          </div>
           <div class="instruction-actions">
-            <%= link_to '✏️', edit_instruction_path(instruction), class: 'icon-btn', title: 'Edit' %>
-            <%= link_to '🗑️', instruction_path(instruction), method: :delete, data: { confirm: 'Are you sure?' }, class: 'icon-btn danger', title: 'Delete' %>
+            <%= link_to "✏️", edit_instruction_path(instruction), class: "btn btn-sm btn-secondary" %>
+            <%= button_to "🗑️", instruction_path(instruction), method: :delete, 
+                class: "btn btn-sm btn-danger", 
+                form: { style: 'display: inline;' },
+                data: { confirm: 'Are you sure?' } %>
           </div>
         </div>
-        <div class="instruction-content"><%= instruction.content %></div>
+        <div class="instruction-content">
+          <%= simple_format(instruction.content) %>
+        </div>
       </div>
     <% end %>
   </div>
 <% else %>
   <div class="empty-state">
     <div class="empty-illustration">📝</div>
-    <p>No ongoing instructions yet.<br>Use the chat to add your first one!</p>
+    <p>No custom instructions yet. Create your first instruction to personalize your AI assistant.</p>
+    <%= link_to "Create First Instruction", new_instruction_path, class: "btn btn-primary" %>
   </div>
 <% end %>
 
-<%= link_to 'Back to Chat', messages_path, class: 'btn' %>
+<div class="page-actions">
+  <%= link_to "← Back to Chat", messages_path, class: "btn btn-secondary" %>
+</div>
+

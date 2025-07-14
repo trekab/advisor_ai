@@ -1,72 +1,93 @@
-<div class="calendar-container">
-  <div class="calendar-header">
-    <h1>Calendar</h1>
-    <div class="calendar-actions">
-      <%= button_to 'Sync Calendar', sync_calendar_index_path, method: :post, class: 'btn btn-secondary' %>
-      <%= link_to 'Back to Chat', messages_path, class: 'btn btn-secondary' %>
-    </div>
-  </div>
+<div class="calendar-header">
+  <h1>Calendar Management</h1>
+  <p>View and manage your Google Calendar events</p>
+</div>
 
-  <% if flash[:notice] %>
-    <div class="flash notice"><%= flash[:notice] %></div>
-  <% end %>
-  <% if flash[:alert] %>
-    <div class="flash alert"><%= flash[:alert] %></div>
-  <% end %>
+<div class="calendar-actions">
+  <%= link_to "📅 View Available Slots", "#", class: "btn btn-primary", onclick: "showAvailableSlots()" %>
+  <%= link_to "📊 Dashboard", dashboard_index_path, class: "btn btn-secondary" %>
+  <%= link_to "💬 Back to Chat", messages_path, class: "btn btn-secondary" %>
+</div>
 
-  <div class="calendar-content">
-    <div class="calendar-section">
-      <h2>Upcoming Events</h2>
-      <% if @events.any? %>
-        <div class="events-list">
-          <% @events.each do |event| %>
-            <div class="event-card">
-              <div class="event-header">
-                <h3><%= event[:summary] %></h3>
-                <span class="event-time">
-                  <% if event[:start_time].present? %>
-                    <%= event[:start_time].strftime('%B %d at %I:%M %p') %>
-                  <% else %>
-                    (No start time)
-                  <% end %>
-                </span>
+<div class="calendar-content">
+  <div class="calendar-section">
+    <h2>Upcoming Events</h2>
+    <% if @events.any? %>
+      <div class="events-list">
+        <% @events.each do |event| %>
+          <div class="event-card">
+            <div class="event-header">
+              <h3><%= event[:summary] %></h3>
+              <div class="event-time">
+                <%= event[:start_time].strftime('%b %-d, %-I:%M %p') %>
               </div>
-              <% if event[:description].present? %>
-                <p class="event-description"><%= event[:description] %></p>
-              <% end %>
-              <% if event[:location].present? %>
-                <p class="event-location">📍 <%= event[:location] %></p>
-              <% end %>
-              <% if event[:attendees].any? %>
-                <p class="event-attendees">👥 <%= event[:attendees].join(', ') %></p>
-              <% end %>
             </div>
-          <% end %>
-        </div>
-      <% else %>
-        <div class="empty-state">
-          <p>No upcoming events found.</p>
-        </div>
-      <% end %>
-    </div>
+            <% if event[:description].present? %>
+              <div class="event-description">
+                <%= event[:description] %>
+              </div>
+            <% end %>
+            <% if event[:location].present? %>
+              <div class="event-location">
+                📍 <%= event[:location] %>
+              </div>
+            <% end %>
+            <% if event[:attendees].any? %>
+              <div class="event-attendees">
+                👥 <%= event[:attendees].count %> attendee<%= 's' if event[:attendees].count != 1 %>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="empty-state">
+        <p>No upcoming events found</p>
+      </div>
+    <% end %>
+  </div>
 
-    <div class="calendar-section">
-      <h2>Available Slots Today</h2>
-      <% if @available_slots.any? %>
-        <div class="slots-list">
-          <% @available_slots.first(8).each do |slot| %>
-            <div class="slot-card">
-              <span class="slot-time">
-                <%= slot[:start_time].strftime('%I:%M %p') %> - <%= slot[:end_time].strftime('%I:%M %p') %>
-              </span>
-            </div>
-          <% end %>
-        </div>
-      <% else %>
-        <div class="empty-state">
-          <p>No available slots found for today.</p>
-        </div>
-      <% end %>
+  <div class="calendar-section">
+    <h2>Available Time Slots</h2>
+    <div class="slots-container">
+      <p class="slots-info">Click "View Available Slots" to see your free time</p>
+      <div id="available-slots" class="slots-list" style="display: none;">
+        <!-- Slots will be populated by JavaScript -->
+      </div>
     </div>
   </div>
-</div> 
+</div>
+
+<script>
+  function showAvailableSlots() {
+    const slotsContainer = document.getElementById('available-slots');
+    const infoText = document.querySelector('.slots-info');
+    
+    if (slotsContainer.style.display === 'none') {
+      // Show loading state
+      slotsContainer.innerHTML = '<div class="loading">Loading available slots...</div>';
+      slotsContainer.style.display = 'block';
+      infoText.style.display = 'none';
+      
+      // Simulate API call (replace with actual AJAX call)
+      setTimeout(() => {
+        const slots = [
+          { time: '9:00 AM - 10:00 AM', date: 'Today' },
+          { time: '2:00 PM - 3:00 PM', date: 'Today' },
+          { time: '10:00 AM - 11:00 AM', date: 'Tomorrow' },
+          { time: '3:00 PM - 4:00 PM', date: 'Tomorrow' }
+        ];
+        
+        slotsContainer.innerHTML = slots.map(slot => `
+          <div class="slot-card">
+            <div class="slot-date">${slot.date}</div>
+            <div class="slot-time">${slot.time}</div>
+          </div>
+        `).join('');
+      }, 1000);
+    } else {
+      slotsContainer.style.display = 'none';
+      infoText.style.display = 'block';
+    }
+  }
+</script> 

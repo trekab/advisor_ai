@@ -6,6 +6,19 @@ class InstructionsController < ApplicationController
     @instructions = current_user.instructions.order(created_at: :desc)
   end
 
+  def new
+    @instruction = current_user.instructions.build
+  end
+
+  def create
+    @instruction = current_user.instructions.build(instruction_params)
+    if @instruction.save
+      redirect_to instructions_path, notice: 'Instruction created successfully.'
+    else
+      render :new
+    end
+  end
+
   def edit
   end
 
