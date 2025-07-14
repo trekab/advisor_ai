@@ -28,6 +28,12 @@ Rails.application.routes.draw do
       post :sync
     end
   end
+  
+  resources :dashboard, only: [:index] do
+    collection do
+      post :sync_now
+    end
+  end
 
   # Defines the root path route ("/")
   # root "posts#index"

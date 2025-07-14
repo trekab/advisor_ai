@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_07_14_094316) do
+ActiveRecord::Schema[8.0].define(version: 2025_07_14_102442) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -46,6 +46,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_14_094316) do
     t.string "hubspot_access_token"
     t.string "hubspot_refresh_token"
     t.datetime "hubspot_token_updated_at"
+    t.datetime "last_email_sync_at"
   end
 
   add_foreign_key "emails", "users"

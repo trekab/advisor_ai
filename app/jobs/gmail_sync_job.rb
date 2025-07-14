@@ -23,10 +23,14 @@ class GmailSyncJob < ApplicationJob
         to      = header_value(message.payload.headers, 'To')
         body    = extract_body(message.payload)
 
-        if body.blank?
+        # Additional safety check for body content
+        if body.blank? || !body.valid_encoding?
           emails_skipped += 1
           next
         end
+
+        # Remove null bytes
+        body = body.delete("\0")
 
         embedding = embedder.embed(body)
 
@@ -70,19 +74,62 @@ class GmailSyncJob < ApplicationJob
   end
 
   def extract_body(payload)
+    # Handle multipart messages
     if payload.parts&.any?
+      # Try to find plain text first
       plain = payload.parts.find { |p| p.mime_type == 'text/plain' }
-      decode(plain&.body&.data)
-    else
+      if plain&.body&.data.present?
+        return decode(plain.body.data)
+      end
+      
+      # Fall back to HTML if no plain text
+      html = payload.parts.find { |p| p.mime_type == 'text/html' }
+      if html&.body&.data.present?
+        return decode(html.body.data)
+      end
+      
+      # Try nested parts
+      payload.parts.each do |part|
+        if part.parts&.any?
+          nested_body = extract_body(part)
+          return nested_body if nested_body.present?
+        end
+      end
+    end
+    
+    # Handle simple messages
+    if payload.body&.data.present?
       decode(payload.body.data)
+    else
+      ""
     end
   end
 
   def decode(data)
     return "" unless data.present?
-    Base64.urlsafe_decode64(data).force_encoding('UTF-8')
-  rescue StandardError => e
-    Rails.logger.warn("[GmailSyncJob] Failed to decode message body: #{e.message}")
-    ""
+    
+    # Handle different base64 encodings
+    begin
+      # Try URL-safe base64 first
+      decoded = Base64.urlsafe_decode64(data)
+    rescue ArgumentError
+      begin
+        # Try standard base64
+        decoded = Base64.decode64(data)
+      rescue ArgumentError => e
+        Rails.logger.warn("[GmailSyncJob] Failed to decode message body: #{e.message}")
+        return ""
+      end
+    end
+    
+    # Handle UTF-8 encoding issues
+    begin
+      decoded.force_encoding('UTF-8')
+      # Validate UTF-8
+      decoded.valid_encoding? ? decoded : decoded.encode('UTF-8', invalid: :replace, undef: :replace, replace: '?')
+    rescue Encoding::InvalidByteSequenceError, Encoding::UndefinedConversionError => e
+      Rails.logger.warn("[GmailSyncJob] UTF-8 encoding issue: #{e.message}")
+      decoded.encode('UTF-8', invalid: :replace, undef: :replace, replace: '?')
+    end
   end
 end

@@ -1,0 +1,118 @@
+<div class="dashboard-container">
+  <div class="dashboard-header">
+    <h1>Dashboard</h1>
+    <div class="dashboard-actions">
+      <%= button_to 'Sync Now', sync_now_dashboard_index_path, method: :post, class: 'btn btn-primary' %>
+      <%= link_to 'Back to Chat', messages_path, class: 'btn btn-secondary' %>
+    </div>
+  </div>
+
+  <% if flash[:notice] %>
+    <div class="flash notice"><%= flash[:notice] %></div>
+  <% end %>
+  <% if flash[:alert] %>
+    <div class="flash alert"><%= flash[:alert] %></div>
+  <% end %>
+
+  <div class="dashboard-content">
+    <!-- Statistics Cards -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-number"><%= @stats[:total_emails] %></div>
+        <div class="stat-label">Total Emails</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number"><%= @stats[:total_messages] %></div>
+        <div class="stat-label">Total Messages</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number"><%= @stats[:total_instructions] %></div>
+        <div class="stat-label">Instructions</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number"><%= @stats[:recent_emails] %></div>
+        <div class="stat-label">New Emails (24h)</div>
+      </div>
+    </div>
+
+    <!-- Sync Status -->
+    <div class="dashboard-section">
+      <h2>Connection Status</h2>
+      <div class="status-grid">
+        <div class="status-card <%= @sync_status[:google_connected] ? 'connected' : 'disconnected' %>">
+          <div class="status-icon">
+            <%= @sync_status[:google_connected] ? '✓' : '✗' %>
+          </div>
+          <div class="status-info">
+            <h3>Google</h3>
+            <p><%= @sync_status[:google_connected] ? 'Connected' : 'Not Connected' %></p>
+            <% if @sync_status[:last_email_sync] %>
+              <small>Last sync: <%= @sync_status[:last_email_sync].strftime('%B %d at %I:%M %p') %></small>
+            <% end %>
+          </div>
+        </div>
+        
+        <div class="status-card <%= @sync_status[:hubspot_connected] ? 'connected' : 'disconnected' %>">
+          <div class="status-icon">
+            <%= @sync_status[:hubspot_connected] ? '✓' : '✗' %>
+          </div>
+          <div class="status-info">
+            <h3>HubSpot</h3>
+            <p><%= @sync_status[:hubspot_connected] ? 'Connected' : 'Not Connected' %></p>
+            <% if @sync_status[:last_calendar_sync] %>
+              <small>Last sync: <%= @sync_status[:last_calendar_sync].strftime('%B %d at %I:%M %p') %></small>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="dashboard-section">
+      <h2>Recent Activity</h2>
+      <div class="activity-grid">
+        <div class="activity-column">
+          <h3>Recent Emails</h3>
+          <% if @recent_emails.any? %>
+            <div class="activity-list">
+              <% @recent_emails.each do |email| %>
+                <div class="activity-item">
+                  <div class="activity-header">
+                    <strong><%= email.subject %></strong>
+                    <span class="activity-time"><%= email.created_at.strftime('%I:%M %p') %></span>
+                  </div>
+                  <div class="activity-details">
+                    From: <%= email.from %>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          <% else %>
+            <p class="empty-state">No recent emails</p>
+          <% end %>
+        </div>
+        
+        <div class="activity-column">
+          <h3>Recent Messages</h3>
+          <% if @recent_messages.any? %>
+            <div class="activity-list">
+              <% @recent_messages.each do |message| %>
+                <div class="activity-item">
+                  <div class="activity-header">
+                    <strong><%= message.role.titleize %></strong>
+                    <span class="activity-time"><%= message.created_at.strftime('%I:%M %p') %></span>
+                  </div>
+                  <div class="activity-details">
+                    <%= message.content.truncate(100) %>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          <% else %>
+            <p class="empty-state">No recent messages</p>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div> 

@@ -3,6 +3,7 @@
     <div class="chat-header">
       <h2>Ask Anything</h2>
       <div style="margin-top: 0.5em; display: flex; gap: 0.5rem; align-items: center;">
+        <%= link_to 'Dashboard', dashboard_index_path, class: 'btn btn-primary' %>
         <%= link_to 'Manage Instructions', instructions_path, class: 'btn btn-secondary' %>
         <%= link_to 'Calendar', calendar_index_path, class: 'btn btn-info' %>
         <% if current_user.hubspot_access_token.present? %>
