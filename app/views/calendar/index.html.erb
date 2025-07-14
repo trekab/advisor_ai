@@ -1,0 +1,72 @@
+<div class="calendar-container">
+  <div class="calendar-header">
+    <h1>Calendar</h1>
+    <div class="calendar-actions">
+      <%= button_to 'Sync Calendar', sync_calendar_index_path, method: :post, class: 'btn btn-secondary' %>
+      <%= link_to 'Back to Chat', messages_path, class: 'btn btn-secondary' %>
+    </div>
+  </div>
+
+  <% if flash[:notice] %>
+    <div class="flash notice"><%= flash[:notice] %></div>
+  <% end %>
+  <% if flash[:alert] %>
+    <div class="flash alert"><%= flash[:alert] %></div>
+  <% end %>
+
+  <div class="calendar-content">
+    <div class="calendar-section">
+      <h2>Upcoming Events</h2>
+      <% if @events.any? %>
+        <div class="events-list">
+          <% @events.each do |event| %>
+            <div class="event-card">
+              <div class="event-header">
+                <h3><%= event[:summary] %></h3>
+                <span class="event-time">
+                  <% if event[:start_time].present? %>
+                    <%= event[:start_time].strftime('%B %d at %I:%M %p') %>
+                  <% else %>
+                    (No start time)
+                  <% end %>
+                </span>
+              </div>
+              <% if event[:description].present? %>
+                <p class="event-description"><%= event[:description] %></p>
+              <% end %>
+              <% if event[:location].present? %>
+                <p class="event-location">📍 <%= event[:location] %></p>
+              <% end %>
+              <% if event[:attendees].any? %>
+                <p class="event-attendees">👥 <%= event[:attendees].join(', ') %></p>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="empty-state">
+          <p>No upcoming events found.</p>
+        </div>
+      <% end %>
+    </div>
+
+    <div class="calendar-section">
+      <h2>Available Slots Today</h2>
+      <% if @available_slots.any? %>
+        <div class="slots-list">
+          <% @available_slots.first(8).each do |slot| %>
+            <div class="slot-card">
+              <span class="slot-time">
+                <%= slot[:start_time].strftime('%I:%M %p') %> - <%= slot[:end_time].strftime('%I:%M %p') %>
+              </span>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="empty-state">
+          <p>No available slots found for today.</p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div> 

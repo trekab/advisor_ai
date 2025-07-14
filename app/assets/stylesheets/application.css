@@ -699,3 +699,142 @@ body, html {
     flex-direction: column;
   }
 }
+
+/* Calendar styles */
+.calendar-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.calendar-header h1 {
+  margin: 0;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--gray-800);
+}
+
+.calendar-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.calendar-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+.calendar-section {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: var(--shadow-lg);
+}
+
+.calendar-section h2 {
+  margin: 0 0 1.5rem 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--gray-800);
+}
+
+.events-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.event-card {
+  background: var(--gray-50);
+  border-radius: 12px;
+  padding: 1.5rem;
+  border: 1px solid var(--gray-200);
+  transition: all 0.2s ease-in-out;
+}
+
+.event-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.event-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.5rem;
+}
+
+.event-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--gray-800);
+}
+
+.event-time {
+  font-size: 0.9rem;
+  color: var(--gray-600);
+  font-weight: 500;
+}
+
+.event-description {
+  margin: 0.5rem 0;
+  color: var(--gray-700);
+  line-height: 1.5;
+}
+
+.event-location, .event-attendees {
+  margin: 0.25rem 0;
+  font-size: 0.9rem;
+  color: var(--gray-600);
+}
+
+.slots-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 1rem;
+}
+
+.slot-card {
+  background: var(--primary);
+  color: white;
+  border-radius: 8px;
+  padding: 1rem;
+  text-align: center;
+  font-weight: 600;
+  transition: all 0.2s ease-in-out;
+}
+
+.slot-card:hover {
+  background: var(--primary-dark);
+  transform: scale(1.05);
+}
+
+.slot-time {
+  font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+  .calendar-content {
+    grid-template-columns: 1fr;
+  }
+  
+  .calendar-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+  
+  .calendar-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+}

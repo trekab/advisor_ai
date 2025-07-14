@@ -4,6 +4,12 @@
       <h2>Ask Anything</h2>
       <div style="margin-top: 0.5em; display: flex; gap: 0.5rem; align-items: center;">
         <%= link_to 'Manage Instructions', instructions_path, class: 'btn btn-secondary' %>
+        <%= link_to 'Calendar', calendar_index_path, class: 'btn btn-info' %>
+        <% if current_user.hubspot_access_token.present? %>
+          <span class="btn btn-success" style="cursor: default;">✓ HubSpot Connected</span>
+        <% else %>
+          <%= link_to 'Connect HubSpot', '/auth/hubspot', class: 'btn btn-warning' %>
+        <% end %>
         <%= button_to 'Logout', logout_path, method: :delete, class: 'btn btn-secondary', form: { style: 'display: inline;' } %>
       </div>
     </div>

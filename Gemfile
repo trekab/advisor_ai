@@ -51,6 +51,7 @@ gem 'omniauth-google-oauth2'
 gem 'dotenv-rails' # for local env vars
 gem 'pgvector'
 gem 'google-apis-gmail_v1'
+gem 'google-apis-calendar_v3'
 gem 'ruby-openai'
 gem 'hubspot-api-client'
 gem 'omniauth-hubspot'
