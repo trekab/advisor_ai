@@ -1,0 +1,12 @@
+<h1>Edit Instruction</h1>
+
+<%= form_with model: @instruction, local: true do |f| %>
+  <div class="field">
+    <%= f.label :content, 'Instruction' %><br>
+    <%= f.text_area :content, rows: 3, class: 'instruction-textarea' %>
+  </div>
+  <div class="actions">
+    <%= f.submit 'Save', class: 'btn' %>
+    <%= link_to 'Cancel', instructions_path, class: 'btn btn-secondary' %>
+  </div>
+<% end %>

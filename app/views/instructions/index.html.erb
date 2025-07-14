@@ -1,0 +1,19 @@
+<h1>Ongoing Instructions</h1>
+
+<% if @instructions.any? %>
+  <ul class="instructions-list">
+    <% @instructions.each do |instruction| %>
+      <li>
+        <div class="instruction-content"><%= instruction.content %></div>
+        <div class="instruction-actions">
+          <%= link_to 'Edit', edit_instruction_path(instruction), class: 'btn' %>
+          <%= link_to 'Delete', instruction_path(instruction), method: :delete, data: { confirm: 'Are you sure?' }, class: 'btn btn-danger' %>
+        </div>
+      </li>
+    <% end %>
+  </ul>
+<% else %>
+  <p>No ongoing instructions yet.</p>
+<% end %>
+
+<%= link_to 'Back to Chat', messages_path, class: 'btn' %>

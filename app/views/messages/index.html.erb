@@ -2,6 +2,9 @@
   <div class="chat-card">
     <div class="chat-header">
       <h2>Ask Anything</h2>
+      <div style="margin-top: 0.5em;">
+        <%= link_to 'Manage Instructions', instructions_path, class: 'btn btn-secondary' %>
+      </div>
     </div>
     <% if flash[:notice] %>
       <div class="flash notice"><%= flash[:notice] %></div>

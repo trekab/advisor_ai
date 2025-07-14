@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_07_13_115751) do
+ActiveRecord::Schema[8.0].define(version: 2025_07_14_033601) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -18,6 +18,15 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_13_115751) do
 # Could not dump table "emails" because of following StandardError
 #   Unknown type 'vector' for column 'embedding'
 
+
+  create_table "instructions", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.text "content"
+    t.string "embedding"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_instructions_on_user_id"
+  end
 
   create_table "messages", force: :cascade do |t|
     t.bigint "user_id", null: false
@@ -37,5 +46,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_13_115751) do
   end
 
   add_foreign_key "emails", "users"
+  add_foreign_key "instructions", "users"
   add_foreign_key "messages", "users"
 end

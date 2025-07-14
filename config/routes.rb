@@ -1,4 +1,8 @@
 Rails.application.routes.draw do
+  get "instructions/index"
+  get "instructions/edit"
+  get "instructions/update"
+  get "instructions/destroy"
   get "sessions/index"
   get "sessions/google_callback"
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
@@ -13,6 +17,7 @@ Rails.application.routes.draw do
   # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
   # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
   resources :messages, only: [:index, :create]
+  resources :instructions, only: [:index, :edit, :update, :destroy]
 
   # Defines the root path route ("/")
   # root "posts#index"
