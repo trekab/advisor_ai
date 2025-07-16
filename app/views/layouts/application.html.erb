@@ -7,6 +7,38 @@
     <%= csp_meta_tag %>
 
     <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+    
+    <script>
+      // Quick Actions Modal
+      function showQuickActions() {
+        document.getElementById('quick-actions-modal').style.display = 'block';
+      }
+
+      function hideQuickActions() {
+        document.getElementById('quick-actions-modal').style.display = 'none';
+      }
+
+      // Quick action functions
+      function syncEmails() {
+        hideQuickActions();
+        alert('Email sync started!');
+      }
+
+      function syncCalendar() {
+        hideQuickActions();
+        alert('Calendar sync started!');
+      }
+
+      function connectHubSpot() {
+        hideQuickActions();
+        window.location.href = '/auth/hubspot';
+      }
+
+      function showDashboard() {
+        hideQuickActions();
+        window.location.href = '/dashboard';
+      }
+    </script>
   </head>
 
   <body>
@@ -29,10 +61,10 @@
               </div>
               <div class="nav-links">
                 <% if current_user %>
-                  <span style="color: var(--gray-600); font-size: 0.875rem;">
-                    Welcome, <%= current_user.email %>
-                  </span>
-                  <%= button_to 'Logout', logout_path, method: :delete, class: 'btn btn-sm btn-secondary', form: { style: 'display: inline;' } %>
+                  <div class="user-info">
+                    <span class="user-email"><%= current_user.email %></span>
+                    <%= button_to 'Logout', logout_path, method: :delete, class: 'btn btn-sm btn-secondary', form: { style: 'display: inline;' } %>
+                  </div>
                 <% end %>
               </div>
             </div>
@@ -40,9 +72,75 @@
         <% end %>
 
         <!-- Main Content -->
-        <div style="padding: var(--space-6);">
+        <div style="padding: var(--space-6); padding-bottom: 100px;">
           <%= yield %>
         </div>
+        
+        <!-- Bottom Navigation -->
+        <% unless current_page?(root_path) %>
+          <div class="bottom-nav">
+            <div class="nav-container">
+              <div class="nav-item">
+                <%= link_to messages_path, class: "nav-link #{current_page?(messages_path) ? 'active' : ''}" do %>
+                  <div class="nav-icon">💬</div>
+                  <span>Chat</span>
+                <% end %>
+              </div>
+              <div class="nav-item">
+                <%= link_to dashboard_index_path, class: "nav-link #{current_page?(dashboard_index_path) ? 'active' : ''}" do %>
+                  <div class="nav-icon">📊</div>
+                  <span>Dashboard</span>
+                <% end %>
+              </div>
+              <div class="nav-item">
+                <%= link_to instructions_path, class: "nav-link #{current_page?(instructions_path) ? 'active' : ''}" do %>
+                  <div class="nav-icon">⚙️</div>
+                  <span>Settings</span>
+                <% end %>
+              </div>
+              <div class="nav-item">
+                <%= link_to calendar_index_path, class: "nav-link #{current_page?(calendar_index_path) ? 'active' : ''}" do %>
+                  <div class="nav-icon">📅</div>
+                  <span>Calendar</span>
+                <% end %>
+              </div>
+              <div class="nav-item">
+                <%= link_to "#", class: "nav-link", onclick: "showQuickActions()" do %>
+                  <div class="nav-icon">➕</div>
+                  <span>More</span>
+                <% end %>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Quick Actions Modal -->
+          <div id="quick-actions-modal" class="modal" style="display: none;">
+            <div class="modal-content quick-actions-modal">
+              <div class="modal-header">
+                <h3>Quick Actions</h3>
+                <button class="close-btn" onclick="hideQuickActions()">×</button>
+              </div>
+              <div class="quick-actions-grid">
+                <button class="quick-action-btn" onclick="syncEmails()">
+                  <div class="action-icon">📧</div>
+                  <span>Sync Emails</span>
+                </button>
+                <button class="quick-action-btn" onclick="syncCalendar()">
+                  <div class="action-icon">📅</div>
+                  <span>Sync Calendar</span>
+                </button>
+                <button class="quick-action-btn" onclick="connectHubSpot()">
+                  <div class="action-icon">🔗</div>
+                  <span>Connect HubSpot</span>
+                </button>
+                <button class="quick-action-btn" onclick="showDashboard()">
+                  <div class="nav-icon">📊</div>
+                  <span>Dashboard</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        <% end %>
       </div>
     </div>
   </body>

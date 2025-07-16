@@ -111,63 +111,7 @@
   </div>
 </div>
 
-<!-- Bottom Navigation -->
-<div class="bottom-nav">
-  <div class="nav-container">
-    <div class="nav-item">
-      <%= link_to messages_path, class: "nav-link active" do %>
-        <div class="nav-icon">💬</div>
-        <span>Chat</span>
-      <% end %>
-    </div>
-    <div class="nav-item">
-      <%= link_to instructions_path, class: "nav-link" do %>
-        <div class="nav-icon">⚙️</div>
-        <span>Settings</span>
-      <% end %>
-    </div>
-    <div class="nav-item">
-      <%= link_to calendar_index_path, class: "nav-link" do %>
-        <div class="nav-icon">📅</div>
-        <span>Calendar</span>
-      <% end %>
-    </div>
-    <div class="nav-item">
-      <%= link_to "#", class: "nav-link", onclick: "showQuickActions()" do %>
-        <div class="nav-icon">➕</div>
-        <span>More</span>
-      <% end %>
-    </div>
-  </div>
-</div>
 
-<!-- Quick Actions Modal -->
-<div id="quick-actions-modal" class="modal" style="display: none;">
-  <div class="modal-content quick-actions-modal">
-    <div class="modal-header">
-      <h3>Quick Actions</h3>
-      <button class="close-btn" onclick="hideQuickActions()">×</button>
-    </div>
-    <div class="quick-actions-grid">
-      <button class="quick-action-btn" onclick="syncEmails()">
-        <div class="action-icon">📧</div>
-        <span>Sync Emails</span>
-      </button>
-      <button class="quick-action-btn" onclick="syncCalendar()">
-        <div class="action-icon">📅</div>
-        <span>Sync Calendar</span>
-      </button>
-      <button class="quick-action-btn" onclick="connectHubSpot()">
-        <div class="action-icon">🔗</div>
-        <span>Connect HubSpot</span>
-      </button>
-      <button class="quick-action-btn" onclick="showDashboard()">
-        <div class="action-icon">📊</div>
-        <span>Dashboard</span>
-      </button>
-    </div>
-  </div>
-</div>
 
 <script>
   // Auto-scroll to bottom of messages
@@ -217,35 +161,7 @@
     });
   });
 
-  // Quick Actions Modal
-  function showQuickActions() {
-    document.getElementById('quick-actions-modal').style.display = 'block';
-  }
 
-  function hideQuickActions() {
-    document.getElementById('quick-actions-modal').style.display = 'none';
-  }
-
-  // Quick action functions
-  function syncEmails() {
-    hideQuickActions();
-    alert('Email sync started!');
-  }
-
-  function syncCalendar() {
-    hideQuickActions();
-    alert('Calendar sync started!');
-  }
-
-  function connectHubSpot() {
-    hideQuickActions();
-    window.location.href = '/auth/hubspot';
-  }
-
-  function showDashboard() {
-    hideQuickActions();
-    window.location.href = '/dashboard';
-  }
 
   // Scroll on page load
   document.addEventListener('DOMContentLoaded', function() {
