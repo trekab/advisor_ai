@@ -5,6 +5,12 @@ class SessionsController < ApplicationController
 
   def google_callback
     auth = request.env['omniauth.auth']
+    
+    unless auth
+      redirect_to root_path, alert: "Google authentication failed. Please try again."
+      return
+    end
+    
     user = User.find_or_initialize_by(email: auth.info.email)
 
     user.google_access_token = auth.credentials.token

@@ -1,66 +1,171 @@
 <div class="chat-container">
+  <!-- Header Section -->
   <div class="chat-header">
-    <h1>AI Assistant</h1>
-    <p>Ask me anything about your emails, calendar, or clients</p>
+    <div class="header-content">
+      <h1>Ask Anything</h1>
+      <button class="close-btn" onclick="window.history.back()">×</button>
+    </div>
+    
+    <!-- Tabs -->
+    <div class="chat-tabs">
+      <div class="tab active" data-tab="chat">Chat</div>
+      <div class="tab" data-tab="history">History</div>
+      <button class="new-thread-btn">+ New thread</button>
+    </div>
   </div>
 
+  <!-- Context Area -->
+  <div class="context-area">
+    <div class="context-info">
+      <span class="context-label">Context set to all meetings</span>
+      <span class="context-time"><%= Time.current.strftime("%I:%M%p – %b %-d, %Y") %></span>
+    </div>
+    <div class="ai-intro">
+      I can answer questions about any Jump meeting. What do you want to know?
+    </div>
+  </div>
+
+  <!-- Messages Container -->
   <div class="messages-container" id="messages">
     <% @messages.each do |message| %>
       <div class="message message-<%= message.role %>">
-        <div class="message-role"><%= message.role.titleize %></div>
-        <div class="message-content"><%= simple_format(message.content) %></div>
+        <% if message.role == 'user' %>
+          <div class="message-bubble user-bubble">
+            <div class="message-content">
+              <%= simple_format(message.content) %>
+            </div>
+            <div class="message-avatars">
+              <div class="avatar">👤</div>
+            </div>
+          </div>
+        <% else %>
+          <div class="message-bubble assistant-bubble">
+            <div class="message-content">
+              <%= simple_format(message.content) %>
+            </div>
+          </div>
+        <% end %>
       </div>
     <% end %>
     
     <!-- Loading indicator -->
     <div class="message message-assistant" id="loading-message" style="display: none;">
-      <div class="message-role">Assistant</div>
-      <div class="message-content">
-        <div class="typing-indicator">
-          <div class="typing-dots">
-            <span></span>
-            <span></span>
-            <span></span>
+      <div class="message-bubble assistant-bubble loading-bubble">
+        <div class="message-content">
+          <!-- Typing indicator -->
+          <div class="typing-indicator" id="typing-indicator">
+            <div class="typing-dots">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+            <div class="typing-text" id="loading-text">AI is thinking...</div>
           </div>
-          <div class="typing-text" id="loading-text">AI is thinking...</div>
-        </div>
-        <div class="ai-status" id="ai-status" style="display: none;">
-          <div class="status-icon">🔧</div>
-          <div class="status-text">Using tools to help you...</div>
-        </div>
-        <div class="loading-progress" id="loading-progress" style="display: none;">
-          <div class="progress-bar">
-            <div class="progress-fill"></div>
+          
+          <!-- Tool usage indicator -->
+          <div class="tool-indicator" id="tool-indicator" style="display: none;">
+            <div class="tool-icon">🔧</div>
+            <div class="tool-text" id="tool-text">Using tools to help you...</div>
           </div>
-          <div class="progress-text">Processing your request...</div>
+          
+          <!-- Progress indicator -->
+          <div class="progress-indicator" id="progress-indicator" style="display: none;">
+            <div class="progress-bar">
+              <div class="progress-fill"></div>
+            </div>
+            <div class="progress-text" id="progress-text">Processing your request...</div>
+          </div>
+          
+          <!-- Status messages -->
+          <div class="status-message" id="status-message" style="display: none;">
+            <div class="status-icon" id="status-icon">⏳</div>
+            <div class="status-text" id="status-text">Preparing response...</div>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
-  <div class="chat-form">
-    <%= form_with model: @message, url: messages_path, method: :post, local: true, id: "message-form" do |form| %>
-      <div class="form-group">
-        <%= form.text_area :content, 
-            placeholder: "Ask me about your emails, schedule a meeting, or get insights about your clients...", 
-            class: "form-input form-textarea",
-            id: "message-input",
-            rows: 3 %>
-      </div>
-      <div class="form-actions">
-        <%= form.submit "Send Message", class: "btn btn-primary", id: "send-button" %>
-      </div>
-    <% end %>
+  <!-- Input Section -->
+  <div class="chat-input-section">
+    <div class="input-container">
+      <%= form_with model: @message, url: messages_path, method: :post, local: true, id: "message-form" do |form| %>
+        <div class="input-group">
+          <%= form.text_area :content, 
+              placeholder: "Ask anything about your meetings...", 
+              class: "message-input",
+              id: "message-input",
+              rows: 1 %>
+          <div class="input-actions">
+            <button type="button" class="action-btn" title="Add attachment">+</button>
+            <div class="context-selector">
+              <button type="button" class="context-btn">All meetings ▼</button>
+            </div>
+            <button type="button" class="action-btn" title="AI Assistant">🤖</button>
+            <button type="button" class="action-btn" title="Email">📧</button>
+            <button type="submit" class="action-btn send-btn" title="Send message">🎤</button>
+          </div>
+        </div>
+      <% end %>
+    </div>
   </div>
 </div>
 
-<div class="quick-actions">
-  <h3>Quick Actions</h3>
-  <div class="action-buttons">
-    <%= link_to "📊 Dashboard", dashboard_index_path, class: "btn btn-secondary" %>
-    <%= link_to "📅 Calendar", calendar_index_path, class: "btn btn-secondary" %>
-    <%= link_to "📧 Email Sync", "#", class: "btn btn-secondary", onclick: "syncEmails()" %>
-    <%= link_to "🔗 HubSpot", hubspot_oauth_path, class: "btn btn-secondary" %>
+<!-- Bottom Navigation -->
+<div class="bottom-nav">
+  <div class="nav-container">
+    <div class="nav-item">
+      <%= link_to messages_path, class: "nav-link active" do %>
+        <div class="nav-icon">💬</div>
+        <span>Chat</span>
+      <% end %>
+    </div>
+    <div class="nav-item">
+      <%= link_to instructions_path, class: "nav-link" do %>
+        <div class="nav-icon">⚙️</div>
+        <span>Settings</span>
+      <% end %>
+    </div>
+    <div class="nav-item">
+      <%= link_to calendar_index_path, class: "nav-link" do %>
+        <div class="nav-icon">📅</div>
+        <span>Calendar</span>
+      <% end %>
+    </div>
+    <div class="nav-item">
+      <%= link_to "#", class: "nav-link", onclick: "showQuickActions()" do %>
+        <div class="nav-icon">➕</div>
+        <span>More</span>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<!-- Quick Actions Modal -->
+<div id="quick-actions-modal" class="modal" style="display: none;">
+  <div class="modal-content quick-actions-modal">
+    <div class="modal-header">
+      <h3>Quick Actions</h3>
+      <button class="close-btn" onclick="hideQuickActions()">×</button>
+    </div>
+    <div class="quick-actions-grid">
+      <button class="quick-action-btn" onclick="syncEmails()">
+        <div class="action-icon">📧</div>
+        <span>Sync Emails</span>
+      </button>
+      <button class="quick-action-btn" onclick="syncCalendar()">
+        <div class="action-icon">📅</div>
+        <span>Sync Calendar</span>
+      </button>
+      <button class="quick-action-btn" onclick="connectHubSpot()">
+        <div class="action-icon">🔗</div>
+        <span>Connect HubSpot</span>
+      </button>
+      <button class="quick-action-btn" onclick="showDashboard()">
+        <div class="action-icon">📊</div>
+        <span>Dashboard</span>
+      </button>
+    </div>
   </div>
 </div>
 
@@ -69,6 +174,21 @@
   function scrollToBottom() {
     const messagesContainer = document.getElementById('messages');
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    
+    // Also scroll the entire page to ensure the loading message is visible
+    setTimeout(() => {
+      const loadingMessage = document.getElementById('loading-message');
+      if (loadingMessage && loadingMessage.style.display !== 'none') {
+        loadingMessage.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      }
+    }, 100);
+  }
+
+  // Auto-resize textarea
+  function autoResizeTextarea() {
+    const textarea = document.getElementById('message-input');
+    textarea.style.height = 'auto';
+    textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
   }
 
   // Play notification sound
@@ -89,31 +209,79 @@
     }
   }
 
-  // Scroll on page load
-  document.addEventListener('DOMContentLoaded', scrollToBottom);
+  // Tab switching
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', function() {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
 
-  // Handle form submission
+  // Quick Actions Modal
+  function showQuickActions() {
+    document.getElementById('quick-actions-modal').style.display = 'block';
+  }
+
+  function hideQuickActions() {
+    document.getElementById('quick-actions-modal').style.display = 'none';
+  }
+
+  // Quick action functions
+  function syncEmails() {
+    hideQuickActions();
+    alert('Email sync started!');
+  }
+
+  function syncCalendar() {
+    hideQuickActions();
+    alert('Calendar sync started!');
+  }
+
+  function connectHubSpot() {
+    hideQuickActions();
+    window.location.href = '/auth/hubspot';
+  }
+
+  function showDashboard() {
+    hideQuickActions();
+    window.location.href = '/dashboard';
+  }
+
+  // Scroll on page load
+  document.addEventListener('DOMContentLoaded', function() {
+    scrollToBottom();
+    
+    // Auto-resize textarea on input
+    const textarea = document.getElementById('message-input');
+    textarea.addEventListener('input', autoResizeTextarea);
+    
+    // Handle Enter key - prevent default and trigger our custom submit
+    textarea.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // Trigger our custom form submission
+        const form = document.getElementById('message-form');
+        const submitEvent = new Event('submit', { bubbles: true, cancelable: true });
+        form.dispatchEvent(submitEvent);
+      }
+    });
+  });
+
+  // Handle form submission with proper loading states
   document.getElementById('message-form').addEventListener('submit', function(e) {
-    const button = document.getElementById('send-button');
+    e.preventDefault(); // Prevent default form submission
+    
     const input = document.getElementById('message-input');
     const loadingMessage = document.getElementById('loading-message');
-    const loadingText = document.getElementById('loading-text');
-    const loadingProgress = document.getElementById('loading-progress');
     
     if (input.value.trim() === '') {
-      e.preventDefault();
       return;
     }
     
-    // Show loading state
-    button.innerHTML = '<span class="loading"></span> Sending...';
-    button.disabled = true;
+    // Show loading state immediately
     input.readOnly = true;
-    
-    // Add loading class to form
-    document.querySelector('.chat-form').classList.add('loading');
-    
-    // Show typing indicator
     loadingMessage.style.display = 'block';
     scrollToBottom();
     
@@ -121,47 +289,102 @@
     playNotificationSound();
     triggerHapticFeedback();
     
-    // Determine loading message based on input content
+    // Show typing indicator first
+    showTypingIndicator();
+    
+    // Determine what type of request this is
     const userMessage = input.value.toLowerCase();
-    const aiStatus = document.getElementById('ai-status');
     
-    if (userMessage.includes('schedule') || userMessage.includes('appointment') || userMessage.includes('meeting')) {
-      loadingText.textContent = 'Scheduling your meeting...';
-      loadingProgress.style.display = 'block';
-      aiStatus.style.display = 'flex';
-    } else if (userMessage.includes('email') || userMessage.includes('send')) {
-      loadingText.textContent = 'Sending your email...';
-      loadingProgress.style.display = 'block';
-      aiStatus.style.display = 'flex';
-    } else if (userMessage.includes('search') || userMessage.includes('find') || userMessage.includes('who')) {
-      loadingText.textContent = 'Searching through your data...';
-      loadingProgress.style.display = 'block';
-      aiStatus.style.display = 'flex';
-    } else {
-      loadingText.textContent = 'AI is thinking...';
-      loadingProgress.style.display = 'none';
-      aiStatus.style.display = 'none';
-    }
-    
-    // Add a small delay to show the typing animation
+    // After 2 seconds, show appropriate indicator
     setTimeout(() => {
-      // The form will submit and page will reload with the response
-    }, 100);
+      if (userMessage.includes('schedule') || userMessage.includes('appointment') || userMessage.includes('meeting')) {
+        showToolIndicator('Scheduling your meeting...');
+      } else if (userMessage.includes('email') || userMessage.includes('send')) {
+        showToolIndicator('Sending your email...');
+      } else if (userMessage.includes('search') || userMessage.includes('find') || userMessage.includes('who')) {
+        showToolIndicator('Searching through your data...');
+      } else if (userMessage.includes('task') || userMessage.includes('todo')) {
+        showToolIndicator('Creating your task...');
+      } else {
+        showStatusMessage('Generating response...', '💭');
+      }
+    }, 2000);
+    
+    // Submit via AJAX
+    const formData = new FormData(document.getElementById('message-form'));
+    
+    fetch('/messages', {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      // Hide loading message
+      loadingMessage.style.display = 'none';
+      
+      // Reset input
+      input.readOnly = false;
+      input.value = '';
+      input.style.height = 'auto';
+      
+      if (data.success) {
+        // Reload the page to show new messages
+        window.location.reload();
+      } else {
+        alert('Error: ' + (data.errors || ['Unknown error']).join(', '));
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      loadingMessage.style.display = 'none';
+      input.readOnly = false;
+      alert('An error occurred. Please try again.');
+    });
   });
 
-  // Sync emails function
-  function syncEmails() {
-    const button = event.target;
-    const originalText = button.textContent;
-    
-    button.innerHTML = '<span class="loading"></span> Syncing...';
-    button.disabled = true;
-    
-    // Simulate sync (replace with actual AJAX call)
-    setTimeout(() => {
-      button.textContent = originalText;
-      button.disabled = false;
-      alert('Email sync completed!');
-    }, 2000);
+  // Loading indicator functions
+  function showTypingIndicator() {
+    hideAllIndicators();
+    const typingIndicator = document.getElementById('typing-indicator');
+    if (typingIndicator) {
+      typingIndicator.style.display = 'flex';
+    }
   }
+
+  function showToolIndicator(message) {
+    hideAllIndicators();
+    const toolIndicator = document.getElementById('tool-indicator');
+    document.getElementById('tool-text').textContent = message;
+    toolIndicator.style.display = 'flex';
+  }
+
+  function showProgressIndicator(message) {
+    hideAllIndicators();
+    const progressIndicator = document.getElementById('progress-indicator');
+    document.getElementById('progress-text').textContent = message;
+    progressIndicator.style.display = 'block';
+  }
+
+  function showStatusMessage(message, icon) {
+    hideAllIndicators();
+    const statusMessage = document.getElementById('status-message');
+    document.getElementById('status-icon').textContent = icon;
+    document.getElementById('status-text').textContent = message;
+    statusMessage.style.display = 'flex';
+  }
+
+  function hideAllIndicators() {
+    document.getElementById('typing-indicator').style.display = 'none';
+    document.getElementById('tool-indicator').style.display = 'none';
+    document.getElementById('progress-indicator').style.display = 'none';
+    document.getElementById('status-message').style.display = 'none';
+  }
+
+
+
+
+
 </script> 

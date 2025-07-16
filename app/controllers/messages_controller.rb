@@ -21,10 +21,19 @@ class MessagesController < ApplicationController
         content: ai_response
       )
       
-      redirect_to messages_path
+      if request.xhr?
+        # Return success for AJAX requests
+        render json: { success: true }
+      else
+        redirect_to messages_path
+      end
     else
-      @messages = @user.messages.order(created_at: :asc)
-      render :index
+      if request.xhr?
+        render json: { success: false, errors: @message.errors.full_messages }
+      else
+        @messages = @user.messages.order(created_at: :asc)
+        render :index
+      end
     end
   end
 
